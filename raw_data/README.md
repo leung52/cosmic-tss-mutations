@@ -1,0 +1,4 @@
+Files to download:
+Cosmic_NonCodingVariants_v100_GRCh38.vcf
+Fantom5_CAGE_hg38_gencode.v40_TSS_EIB_Updated -200.txt
+GCF_000001405.26_GRCh38_genomic.fna
