@@ -1,8 +1,8 @@
 # cosmic-tss-mutations
 ## Steps taken:
 1. Generate genome coordinate ranges for each TSS (-10 to 40)
-        - run: 'tss_windows.py'
-        - output: 'hg38_TSS_window.txt'
+        * run: 'tss_windows.py'
+        * output: 'hg38_TSS_window.txt'
 2. Filter non coding variants for mutants within -10 < TSS < 40
         - run: 'filter_cosmic_vcf.py'
         - output: 'Filtered_Cosmic_NonCodingVariants_v100_GRCh38.vcf'
