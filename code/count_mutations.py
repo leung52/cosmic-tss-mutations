@@ -3,15 +3,14 @@ import pandas as pd
 
 ## Files
 tss_file = 'processed_data/hg38_tss_ranges_reduced.tsv'
-snv_file = 'processed_data/Cosmic_NonCodingVariants_v100_GRCh38_filtered_SNV_and_TSS.tsv'
-output_file = 'processed_data/ncv_mutation_count.tsv'
+snv_file = 'processed_data/Cosmic_GenomeScreensMutant_v100_GRCh38_filtered_snv_tss.tsv'
+output_file = 'processed_data/wgs_mutation_count.tsv'
 
 
 # Prepare gene coordinate ranges as dictionary
 tss_df = pd.read_csv(tss_file, sep='\t')
 
 tss_dict = {}
-
 for chrom, chrom_group in tss_df.groupby('Chromosome'):
 	tss_dict[chrom] = {}
 	for strand, group in chrom_group.groupby('Strand'):
@@ -19,10 +18,17 @@ for chrom, chrom_group in tss_df.groupby('Chromosome'):
 		sorted_ranges = sorted(tss_ranges, key=lambda x: x[0])
 		tss_dict[chrom][strand] = sorted_ranges
 
+# Finding relative TSS range
+if tss_df['Strand'].iloc[0] == '+':
+	upstream = tss_df['Transcriptional_Start_Site'].iloc[0] - tss_df['TSS_Frame_Start'].iloc[0]
+	downstream = tss_df['TSS_Frame_End'].iloc[0] - tss_df['Transcriptional_Start_Site'].iloc[0]
+else:
+	upstream = tss_df['TSS_Frame_End'].iloc[0] - tss_df['Transcriptional_Start_Site'].iloc[0]
+	downstream =  tss_df['Transcriptional_Start_Site'].iloc[0] - tss_df['TSS_Frame_Start'].iloc[0]
 
-# Setting up mutation counts for each position in TSS window -10 > 40
+# Setting up mutation counts for each position in TSS window
 count_dict = {}
-for i in range(-10, 41):
+for i in range(-upstream, downstream + 1):
 	count_dict[i] = {
 		'A>G': 0, 'A>C': 0, 'A>T': 0,
 		'G>A': 0, 'G>C': 0, 'G>T': 0,
@@ -64,12 +70,12 @@ for snv_df in pd.read_csv(snv_file, sep='\t', chunksize=5000):
 		if chrom in tss_dict:
 			for (start, end) in tss_dict[chrom]['+']:
 				if start <= pos <= end:
-					rel_pos = pos - start - 10
+					rel_pos = pos - start - upstream
 					mutation_type = ref + '>' + alt
 					count_dict[rel_pos][mutation_type] += 1
 			for (start, end) in tss_dict[chrom]['-']:
 				if start <= pos <= end:
-					rel_pos = (pos - start - 40) * -1
+					rel_pos = (pos - start - downstream) * -1
 					mutation_type = comp_nuc[ref] + '>' + comp_nuc[alt]
 					count_dict[rel_pos][mutation_type] += 1
 

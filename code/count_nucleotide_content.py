@@ -3,10 +3,23 @@ from collections import defaultdict
 
 
 ## Files
+tss_file = 'processed_data/hg38_tss_ranges_reduced.tsv'
 fasta_file = 'processed_data/tss_sequences.fa'
 output_file = 'processed_data/nucleotide_count.tsv'
 
 
+# Find relative TSS range
+tss_df = pd.read_csv(tss_file, sep='\t', nrows=2)
+
+if tss_df['Strand'].iloc[0] == '+':
+	upstream = tss_df['Transcriptional_Start_Site'].iloc[0] - tss_df['TSS_Frame_Start'].iloc[0]
+	downstream = tss_df['TSS_Frame_End'].iloc[0] - tss_df['Transcriptional_Start_Site'].iloc[0]
+else:
+	upstream = tss_df['TSS_Frame_End'].iloc[0] - tss_df['Transcriptional_Start_Site'].iloc[0]
+	downstream =  tss_df['Transcriptional_Start_Site'].iloc[0] - tss_df['TSS_Frame_Start'].iloc[0]
+
+
+# Get nucleotide sequences
 sequences = []
 
 with open(fasta_file, 'r') as f:
@@ -23,14 +36,12 @@ with open(fasta_file, 'r') as f:
                 sequences.append(list(sequence.upper()))
 
 
-# Initialize count dictionary for positions -10 to +40 using defaultdict
-count_dict = defaultdict(lambda: defaultdict(int))
-
 # Count nucleotides at each position in all sequences
+count_dict = defaultdict(lambda: defaultdict(int))
 for sequence in sequences:
-        if len(sequence) == 51:
+        if len(sequence) == upstream + downstream + 1:
                 for i, nucleotide in enumerate(sequence):
-                        position = i - 10
+                        position = i - upstream
                         count_dict[position][nucleotide] += 1
 
 count_dict = {pos: dict(counts) for pos, counts in count_dict.items()}

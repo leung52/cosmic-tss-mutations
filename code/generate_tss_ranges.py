@@ -1,16 +1,18 @@
 import pandas as pd
 
+
+## Files
 # File with the genomic TSS information (must have 'Transcription_Start_Site' as a column name)
 input_file = 'raw_data/Fantom5_CAGE_hg38_gencode.v40_TSS_EIB_Updated -200.txt'
-
 output_file = 'processed_data/hg38_tss_ranges.tsv'
+
+## Set TSS range (must be positive integers)
+upstream_read = 10
+downstream_read = 40
+
 
 # Helper function to calculate the genomic coordinates for the TSS range
 def calculate_frames(row):
-
-	upstream_read = 10
-	downstream_read = 40
-
 	# Positive strand
 	if row['Strand'] == '+':
         	frame_start = row['Transcriptional_Start_Site'] - upstream_read
